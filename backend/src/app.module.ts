@@ -1,0 +1,109 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import {
+  PASSWORD_HASHER,
+  TOKEN_SERVICE,
+} from './application/interfaces/auth.interfaces';
+import { GetMeUseCase } from './application/use-cases/auth/get-me.use-case';
+import { LoginUserUseCase } from './application/use-cases/auth/login-user.use-case';
+import { LogoutUserUseCase } from './application/use-cases/auth/logout-user.use-case';
+import { RefreshTokenUseCase } from './application/use-cases/auth/refresh-token.use-case';
+import { GetDashboardUseCase } from './application/use-cases/dashboard/get-dashboard.use-case';
+import { IngestEventUseCase } from './application/use-cases/events/ingest-event.use-case';
+import { ListEventsUseCase } from './application/use-cases/events/list-events.use-case';
+import { CaptureLeadUseCase } from './application/use-cases/leads/capture-lead.use-case';
+import { GetLeadUseCase } from './application/use-cases/leads/get-lead.use-case';
+import { ListLeadsUseCase } from './application/use-cases/leads/list-leads.use-case';
+import { QualifyLeadUseCase } from './application/use-cases/leads/qualify-lead.use-case';
+import { GetOpportunityUseCase } from './application/use-cases/opportunities/list-opportunities.use-case';
+import { ListOpportunitiesUseCase } from './application/use-cases/opportunities/list-opportunities.use-case';
+import { MoveOpportunityStageUseCase } from './application/use-cases/opportunities/move-opportunity-stage.use-case';
+import { EVENT_BUS } from './domain/ports/event-bus';
+import { ACCOUNT_REPOSITORY } from './domain/repositories/account.repository';
+import { EVENT_REPOSITORY } from './domain/repositories/event.repository';
+import { LEAD_REPOSITORY } from './domain/repositories/lead.repository';
+import { OPPORTUNITY_REPOSITORY } from './domain/repositories/opportunity.repository';
+import { REFRESH_TOKEN_REPOSITORY } from './domain/repositories/refresh-token.repository';
+import { USER_REPOSITORY } from './domain/repositories/user.repository';
+import { BcryptPasswordHasher } from './infrastructure/auth/bcrypt-password.hasher';
+import { JwtAuthGuard } from './infrastructure/auth/jwt-auth.guard';
+import { JwtTokenService } from './infrastructure/auth/jwt-token.service';
+import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
+import { PrismaModule } from './infrastructure/database/prisma.module';
+import { OutboxEventBus } from './infrastructure/events/outbox-event-bus';
+import { PrismaAccountRepository } from './infrastructure/repositories/prisma-account.repository';
+import { PrismaEventRepository } from './infrastructure/repositories/prisma-event.repository';
+import { PrismaLeadRepository } from './infrastructure/repositories/prisma-lead.repository';
+import { PrismaOpportunityRepository } from './infrastructure/repositories/prisma-opportunity.repository';
+import { PrismaRefreshTokenRepository } from './infrastructure/repositories/prisma-refresh-token.repository';
+import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.repository';
+import { AuthController } from './presentation/controllers/auth.controller';
+import { EventsController } from './presentation/controllers/events.controller';
+import { HealthController } from './presentation/controllers/health.controller';
+import { LeadsController } from './presentation/controllers/leads.controller';
+import { OpportunitiesController } from './presentation/controllers/opportunities.controller';
+import { RolesGuard } from './presentation/guards/roles.guard';
+import type { EventRepository } from './domain/repositories/event.repository';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.getOrThrow<string>('JWT_ACCESS_SECRET'),
+        signOptions: {
+          expiresIn: config.get<string>('JWT_ACCESS_EXPIRES_IN', '15m'),
+        },
+      }),
+    }),
+  ],
+  controllers: [
+    HealthController,
+    AuthController,
+    LeadsController,
+    OpportunitiesController,
+    EventsController,
+  ],
+  providers: [
+    JwtStrategy,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    RolesGuard,
+    { provide: USER_REPOSITORY, useClass: PrismaUserRepository },
+    {
+      provide: REFRESH_TOKEN_REPOSITORY,
+      useClass: PrismaRefreshTokenRepository,
+    },
+    { provide: ACCOUNT_REPOSITORY, useClass: PrismaAccountRepository },
+    { provide: LEAD_REPOSITORY, useClass: PrismaLeadRepository },
+    { provide: OPPORTUNITY_REPOSITORY, useClass: PrismaOpportunityRepository },
+    { provide: EVENT_REPOSITORY, useClass: PrismaEventRepository },
+    { provide: PASSWORD_HASHER, useClass: BcryptPasswordHasher },
+    { provide: TOKEN_SERVICE, useClass: JwtTokenService },
+    {
+      provide: EVENT_BUS,
+      useFactory: (events: EventRepository) => new OutboxEventBus(events),
+      inject: [EVENT_REPOSITORY],
+    },
+    LoginUserUseCase,
+    RefreshTokenUseCase,
+    LogoutUserUseCase,
+    GetMeUseCase,
+    CaptureLeadUseCase,
+    ListLeadsUseCase,
+    GetLeadUseCase,
+    QualifyLeadUseCase,
+    ListOpportunitiesUseCase,
+    GetOpportunityUseCase,
+    MoveOpportunityStageUseCase,
+    IngestEventUseCase,
+    ListEventsUseCase,
+    GetDashboardUseCase,
+  ],
+})
+export class AppModule {}

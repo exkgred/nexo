@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  SELLER
+}
+
+enum LeadStatus {
+  NEW
+  QUALIFIED
+  CONVERTED
+  DISQUALIFIED
+}
+
+enum LeadSource {
+  DISCADOR
+  CHAT
+  MANUAL
+  SMARTY
+}
+
+enum OpportunityStage {
+  NEW
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum EventType {
+  LeadCapturado
+  LeadQualificado
+  OportunidadeCriada
+  EstagioAlterado
+  PropostaEnviada
+  OportunidadeGanha
+  OportunidadePerdida
+  PedidoFaturado
+  ChamadaEncerrada
+  TicketAberto
+}
+
+enum EventStatus {
+  RECEIVED
+  PROCESSED
+  PUBLISHED
+  FAILED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          UserRole       @default(SELLER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+  leads         Lead[]         @relation("LeadOwner")
+  opportunities Opportunity[]  @relation("OpportunityOwner")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model Account {
+  id            String         @id @default(uuid())
+  name          String
+  email         String?
+  phone         String?
+  document      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  leads         Lead[]
+  opportunities Opportunity[]
+
+  @@index([email])
+}
+
+model Lead {
+  id            String       @id @default(uuid())
+  name          String
+  email         String?
+  phone         String?
+  company       String?
+  source        LeadSource
+  status        LeadStatus   @default(NEW)
+  notes         String?
+  ownerId       String
+  accountId     String?
+  opportunityId String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  owner         User         @relation("LeadOwner", fields: [ownerId], references: [id])
+  account       Account?     @relation(fields: [accountId], references: [id])
+  opportunity   Opportunity? @relation(fields: [opportunityId], references: [id])
+
+  @@index([status])
+  @@index([source])
+  @@index([ownerId])
+}
+
+model Opportunity {
+  id          String            @id @default(uuid())
+  title       String
+  accountId   String
+  leadId      String?
+  ownerId     String
+  stage       OpportunityStage  @default(NEW)
+  amount      Float             @default(0)
+  sourceApp   String
+  lostReason  String?
+  wonAt       DateTime?
+  lostAt      DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  account     Account           @relation(fields: [accountId], references: [id])
+  owner       User              @relation("OpportunityOwner", fields: [ownerId], references: [id])
+  leads       Lead[]
+
+  @@index([stage])
+  @@index([ownerId])
+  @@index([accountId])
+}
+
+model DomainEvent {
+  id              String      @id @default(uuid())
+  type            EventType
+  sourceApp       String
+  aggregateType   String
+  aggregateId     String
+  correlationId   String
+  idempotencyKey  String      @unique
+  payload         Json
+  status          EventStatus @default(RECEIVED)
+  occurredAt      DateTime    @default(now())
+  publishedAt     DateTime?
+
+  @@index([correlationId, occurredAt])
+  @@index([type])
+  @@index([sourceApp])
+  @@index([aggregateId])
+}
