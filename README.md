@@ -103,8 +103,8 @@ Ingest de eventos: header `x-ingest-secret: nexo-ingest-dev`.
 O frontend sobe sozinho, sem Nest/Postgres. Com `VITE_DEMO=true` o Axios usa um adapter no navegador (leads, pipeline, ingest e outbox no `localStorage`).
 
 1. No [Vercel](https://vercel.com/new) importe `exkgred/nexo`
-2. **Root Directory:** deixe a raiz (o `vercel.json` da raiz já builda `frontend`)
-3. Framework: Vite · o build gera `dist`
+2. Preset **Services**: deixe só o serviço `frontend` (Vite, pasta `frontend/`). Não adicione o Nest.
+3. Se a tela pedir `vercel.json`, use o da raiz (já declara só o frontend)
 4. Variável: `VITE_DEMO=true` (já vem em `frontend/.env.production`)
 
 Login da demo: `ana@nexo.dev` / `password123`.
