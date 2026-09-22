@@ -109,6 +109,8 @@ O frontend sobe sozinho, sem Nest/Postgres. Com `VITE_DEMO=true` o Axios usa um 
 
 Login da demo: `ana@nexo.dev` / `password123`.
 
+Demo: [https://nexo-theta-ten.vercel.app/](https://nexo-theta-ten.vercel.app/)
+
 ## Testes
 
 ```bash
