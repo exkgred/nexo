@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
-import { GitMerge, Kanban, LayoutDashboard, LogOut, Radio, Users } from 'lucide-react'
+import { Kanban, LayoutDashboard, LogOut, Radio, Users } from 'lucide-react'
+import { BrandMark } from '@/components/BrandMark'
 import { initials, ROLE_LABEL } from '@/lib/brand'
 import { useAuthStore } from '@/stores/auth'
 import LoginPage from '@/pages/LoginPage'
@@ -26,11 +27,8 @@ function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh pb-[4.5rem] md:pb-0">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <NavLink to="/" className="flex shrink-0 items-center gap-2 font-semibold text-ink-300">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-ink-950">
-              <GitMerge size={16} />
-            </span>
-            <span>Nexo</span>
+          <NavLink to="/" className="flex shrink-0 items-center text-ink-300">
+            <BrandMark size={32} />
           </NavLink>
           <nav className="hidden items-center gap-1 text-sm text-ink-500 md:flex">
             {NAV.map((item) => (

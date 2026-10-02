@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GitMerge } from 'lucide-react'
+import { BrandMark } from '@/components/BrandMark'
 import { api, unwrap } from '@/lib/api'
 import type { Envelope, PublicUser } from '@/lib/types'
 import { useAuthStore } from '@/stores/auth'
@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(45,212,191,0.16),transparent_42%)]" />
         <div className="relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-ink-500">
-            <GitMerge size={14} className="text-accent" />
+            <BrandMark size={18} wordmark={false} />
             CRM + bus de eventos
           </div>
           <h1 className="mt-8 max-w-md text-4xl font-semibold tracking-tight text-ink-300">
@@ -68,8 +68,8 @@ export default function LoginPage() {
           className="w-full max-w-md space-y-5 rounded-2xl border border-white/10 bg-ink-900/80 p-8 shadow-glow backdrop-blur"
         >
           <div className="text-center lg:text-left">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-ink-950 lg:mx-0">
-              <GitMerge size={22} />
+            <div className="mb-4 flex justify-center lg:justify-start">
+              <BrandMark size={40} />
             </div>
             <h2 className="text-2xl font-semibold text-ink-300">Entrar no Nexo</h2>
             <p className="mt-1 text-sm text-ink-500">Escolha um crachá. A senha já vem preenchida.</p>
